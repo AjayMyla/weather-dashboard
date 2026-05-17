@@ -9,6 +9,38 @@ cityInput.addEventListener("keypress", function(e) {
   if (e.key === "Enter") getWeather();
 });
 
+// AUTO LOCATION
+window.onload = getLocationWeather;
+
+async function getLocationWeather() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      showLoader(true);
+      hideAll();
+
+      try {
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+        );
+
+        const data = await res.json();
+
+        if (data.cod != 200) throw new Error();
+
+        updateUI(data);
+
+      } catch {
+        showError();
+      }
+
+      showLoader(false);
+    });
+  }
+}
+
 async function getWeather() {
   const city = cityInput.value.trim();
   if (!city) return;
@@ -41,7 +73,8 @@ function updateUI(data) {
   document.getElementById("temp").innerText = Math.round(data.main.temp) + "°C";
 
   const condition = data.weather[0].main;
-  document.getElementById("condition").innerText = getEmoji(condition) + " " + condition;
+  document.getElementById("condition").innerText =
+    getEmoji(condition) + " " + condition;
 
   const iconCode = data.weather[0].icon;
   document.getElementById("icon").src =
@@ -49,31 +82,45 @@ function updateUI(data) {
 
   updateBackground(condition);
   updateTime(data.timezone);
-
-  animateCard();
 }
 
+// EMOJI
 function getEmoji(condition) {
-  if (condition === "Clear") return "☀️";
-  if (condition === "Clouds") return "☁️";
-  if (condition === "Rain") return "🌧";
-  if (condition === "Thunderstorm") return "⛈";
-  if (condition === "Snow") return "❄️";
-  return "🌡";
+  switch (condition) {
+    case "Clear": return "☀️";
+    case "Clouds": return "☁️";
+    case "Rain": return "🌧️";
+    case "Drizzle": return "🌦️";
+    case "Thunderstorm": return "⛈️";
+    case "Snow": return "❄️";
+    default: return "🌡️";
+  }
 }
 
+// BACKGROUND + ANIMATION
 function updateBackground(condition) {
-  const themes = {
-    Clear: "linear-gradient(135deg,#f6d365,#fda085)",
-    Clouds: "linear-gradient(135deg,#bdc3c7,#2c3e50)",
-    Rain: "linear-gradient(135deg,#4e54c8,#8f94fb)",
-    Thunderstorm: "linear-gradient(135deg,#141e30,#243b55)",
-    Snow: "linear-gradient(135deg,#e6dada,#274046)"
-  };
+  const canvas = document.getElementById("rain");
+  canvas.style.display = "none";
 
-  document.body.style.background = themes[condition] || themes["Clear"];
+  if (condition === "Rain" || condition === "Drizzle") {
+    document.body.style.background = "linear-gradient(135deg,#4e54c8,#8f94fb)";
+    canvas.style.display = "block";
+    startRain();
+  }
+  else if (condition === "Snow") {
+    document.body.style.background = "linear-gradient(135deg,#e6dada,#274046)";
+    canvas.style.display = "block";
+    startSnow();
+  }
+  else if (condition === "Clouds") {
+    document.body.style.background = "linear-gradient(135deg,#bdc3c7,#2c3e50)";
+  }
+  else {
+    document.body.style.background = "linear-gradient(135deg,#f6d365,#fda085)";
+  }
 }
 
+// TIME
 function updateTime(offset) {
   const utc = new Date().getTime() + new Date().getTimezoneOffset() * 60000;
   const cityTime = new Date(utc + offset * 1000);
@@ -82,6 +129,7 @@ function updateTime(offset) {
     "Local Time: " + cityTime.toLocaleTimeString();
 }
 
+// LOADER & ERROR
 function showLoader(show) {
   document.getElementById("loader").classList.toggle("hidden", !show);
 }
@@ -95,10 +143,77 @@ function showError() {
   document.getElementById("error").classList.remove("hidden");
 }
 
-function animateCard() {
-  const card = document.querySelector(".card");
-  card.style.transform = "scale(1.05)";
-  setTimeout(() => {
-    card.style.transform = "scale(1)";
-  }, 200);
+// RAIN
+function startRain() {
+  const canvas = document.getElementById("rain");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let drops = [];
+
+  for (let i = 0; i < 100; i++) {
+    drops.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      l: Math.random() * 20
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+
+    drops.forEach(d => {
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x, d.y + d.l);
+      ctx.stroke();
+
+      d.y += 10;
+      if (d.y > canvas.height) d.y = 0;
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+}
+
+// SNOW
+function startSnow() {
+  const canvas = document.getElementById("rain");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let snow = [];
+
+  for (let i = 0; i < 100; i++) {
+    snow.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 3
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+
+    snow.forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      s.y += 1;
+      if (s.y > canvas.height) s.y = 0;
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
 }
