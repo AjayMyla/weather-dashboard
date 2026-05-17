@@ -14,6 +14,13 @@ body {
   background: linear-gradient(135deg, #5f9cff, #6dd5ed);
 }
 
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
 .app {
   width: 100%;
   max-width: 350px;
@@ -114,7 +121,6 @@ h1 {
   display: none;
 }
 
-/* Animations */
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
