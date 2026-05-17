@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weather Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app">
+
+  <div class="card">
+
+    <h2>Weather Dashboard</h2>
+
+    <div class="search">
+      <input type="text" id="city" placeholder="Search city...">
+      <button id="searchBtn">🔍</button>
+    </div>
+
+    <div class="loader hidden" id="loader"></div>
+
+    <div id="weather" class="weather hidden">
+      <h3 id="cityName"></h3>
+
+      <div class="tempBox">
+        <img id="icon" src="">
+        <h1 id="temp"></h1>
+      </div>
+
+      <p id="condition"></p>
+      <p id="time"></p>
+    </div>
+
+    <p id="error" class="error hidden">City not found</p>
+
+    <p class="footer">Made by Ajay</p>
+
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
